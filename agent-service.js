@@ -9,7 +9,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { 
     getAuth, onAuthStateChanged, signOut as firebaseSignOut,
-    createUserWithEmailAndPassword, signInWithEmailAndPassword 
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    GoogleAuthProvider, signInWithPopup // <--- ADDED THESE
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import algoliasearch from "https://cdn.jsdelivr.net/npm/algoliasearch@4.22.1/dist/algoliasearch-lite.esm.browser.js";
 
@@ -41,6 +42,45 @@ const tenantIndex = algoliaClient.initIndex(ALGOLIA_INDEX_NAME);
 let currentUser = null;
 
 // --- Auth Functions ---
+
+export async function signInWithGoogle() {
+    console.log("🔵 Starting Google Sign-In...");
+    const provider = new GoogleAuthProvider();
+
+    try {
+        // 1. Trigger the popup
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        console.log(`✅ Google Auth Success: ${user.email}`);
+
+        // 2. Check if 'users_prof' document exists
+        const docRef = doc(db, "users_prof", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+            console.log("👤 New user detected. Creating 'agent' profile in Firestore...");
+            
+            // 3. Create the profile with role: 'agent'
+            await setDoc(docRef, {
+                email: user.email,
+                displayName: user.displayName || 'New Agent',
+                profileImageUrl: user.photoURL || '',
+                bio: "Hello! I am a new agent on Bilikmatch.",
+                phoneNumber: "",
+                role: "agent", // <--- ENFORCING AGENT ROLE HERE
+                createdAt: serverTimestamp()
+            });
+            console.log("📝 Profile created successfully!");
+        } else {
+            console.log("👤 Existing user. Logging in...");
+        }
+
+        return user;
+    } catch (error) {
+        console.error("❌ Google Sign-In Error:", error.code, error.message);
+        throw error;
+    }
+}
 
 export function onUserChanged(callback) {
     onAuthStateChanged(auth, (user) => {

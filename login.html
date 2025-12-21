@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Login - BilikMatch</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 { margin-bottom: 20px; color: #333; }
+        p { color: #666; margin-bottom: 30px; }
+
+        /* Googleボタンのスタイル */
+        .btn-google {
+            background-color: white;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+        .btn-google:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <h2>Welcome Agent</h2>
+    <p>Sign in to manage your listings</p>
+
+    <button id="googleBtn" class="btn-google">
+        <i class="fab fa-google"></i> Sign in with Google
+    </button>
+
+    <div style="margin-top: 20px;">
+        <a href="tenant_list_view.html" style="color: #666; font-size: 14px;">Back to Home</a>
+    </div>
+</div>
+
+<script type="module">
+    import { signInWithGoogle, onUserChanged } from './agent-service.js';
+
+    // すでにログイン済みならプロフィールへ飛ばす
+    onUserChanged((user) => {
+        if (user) {
+            window.location.href = 'profile.html';
+        }
+    });
+
+    // ボタンが押されたらGoogleログインを実行
+    document.getElementById('googleBtn').addEventListener('click', async () => {
+        try {
+            await signInWithGoogle();
+            // 成功したら自動的に onUserChanged が反応して遷移します
+        } catch (error) {
+            alert("Login Failed: " + error.message);
+        }
+    });
+</script>
+
+</body>
+</html>
