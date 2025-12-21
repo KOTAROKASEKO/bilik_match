@@ -72,10 +72,11 @@
         }
         .stat-item b { display: block; font-size: 1.2rem; }
 
-        .actions {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
+        .actions { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .btn {
+            flex: 1; padding: 0.8rem; border: none; border-radius: 8px; cursor: pointer;
+            font-weight: bold; display: flex; align-items: center; justify-content: center;
+            gap: 0.5rem; transition: 0.3s; text-decoration: none; min-width: 120px;
         }
 
         .btn {
@@ -130,6 +131,8 @@
             padding: 0.5rem 1rem 1rem;
             gap: 0.5rem;
         }
+        btn-logout { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .btn-logout:hover { background: #ffcdd2; }
     </style>
 </head>
 <body>
@@ -165,6 +168,9 @@
         <a href="add_listing.html" class="btn btn-primary">
             <i class="fas fa-plus"></i> Add Listing
         </a>
+        <button id="logoutBtn" class="btn btn-logout">
+            <i class="fas fa-sign-out-alt"></i> Log Out
+        </button>
     </div>
 
     <div class="reservation-section" style="margin-bottom: 30px;">
@@ -249,8 +255,14 @@
 
 <script type="module">
     // ★ Added: Import deletePost
-    import { onUserChanged, fetchAgentProfile, fetchAgentPosts, deletePost } from './agent-service.js';
+    import { onUserChanged, fetchAgentProfile, fetchAgentPosts, deletePost, logoutAgent} from './agent-service.js';
     import { initReservation } from './reservation.js';
+
+    document.getElementById('logoutBtn').onclick = () => {
+        if(confirm("Are you sure you want to log out?")) {
+            logoutAgent();
+        }
+    };
 
     let currentAgentId = null;
 

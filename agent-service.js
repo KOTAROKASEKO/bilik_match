@@ -3,14 +3,14 @@
 // --- Imports ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
-    getFirestore, collection, doc, getDoc, getDocs, 
+    getFirestore, collection, doc, getDoc, setDoc, getDocs, 
     addDoc, updateDoc, deleteDoc, query, where, orderBy, 
-    serverTimestamp 
+    serverTimestamp, runTransaction, deleteField
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { 
     getAuth, onAuthStateChanged, signOut as firebaseSignOut,
     createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    GoogleAuthProvider, signInWithPopup // <--- ADDED THESE
+    GoogleAuthProvider, signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import algoliasearch from "https://cdn.jsdelivr.net/npm/algoliasearch@4.22.1/dist/algoliasearch-lite.esm.browser.js";
 
@@ -18,126 +18,105 @@ import algoliasearch from "https://cdn.jsdelivr.net/npm/algoliasearch@4.22.1/dis
 const firebaseConfig = {
   apiKey: "AIzaSyBCCxQ0AYTHy6A6DrfW7ylYxjGW6AZA1OQ",
   authDomain: "whatsappclone-5ad8f.firebaseapp.com",
-  databaseURL: "https://whatsappclone-5ad8f-default-rtdb.firebaseio.com",
   projectId: "whatsappclone-5ad8f",
   storageBucket: "whatsappclone-5ad8f.firebasestorage.app",
   messagingSenderId: "1049878222012",
-  appId: "1:1049878222012:web:54584a8098728e70acecb9",
-  measurementId: "G-EQ99QMVB2Y"
+  appId: "1:1049878222012:web:54584a8098728e70acecb9"
 };
 
 const ALGOLIA_APP_ID = 'Z37M8J0YOF';
 const ALGOLIA_SEARCH_KEY = 'f53032958b1e5ade080d0ae5a5d14332';
 const ALGOLIA_INDEX_NAME = 'tenant_index';
 
-// --- Initialize Services ---
-console.log("🚀 Initializing Firebase and Algolia services...");
+// --- Initialize ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const algoliaClient = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_SEARCH_KEY);
 const tenantIndex = algoliaClient.initIndex(ALGOLIA_INDEX_NAME);
 
-// --- State Management ---
-let currentUser = null;
-
 // --- Auth Functions ---
-
-export async function signInWithGoogle() {
-    console.log("🔵 Starting Google Sign-In...");
-    const provider = new GoogleAuthProvider();
-
-    try {
-        // 1. Trigger the popup
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        console.log(`✅ Google Auth Success: ${user.email}`);
-
-        // 2. Check if 'users_prof' document exists
-        const docRef = doc(db, "users_prof", user.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
-            console.log("👤 New user detected. Creating 'agent' profile in Firestore...");
-            
-            // 3. Create the profile with role: 'agent'
-            await setDoc(docRef, {
-                email: user.email,
-                displayName: user.displayName || 'New Agent',
-                profileImageUrl: user.photoURL || '',
-                bio: "Hello! I am a new agent on Bilikmatch.",
-                phoneNumber: "",
-                role: "agent", // <--- ENFORCING AGENT ROLE HERE
-                createdAt: serverTimestamp()
-            });
-            console.log("📝 Profile created successfully!");
-        } else {
-            console.log("👤 Existing user. Logging in...");
-        }
-
-        return user;
-    } catch (error) {
-        console.error("❌ Google Sign-In Error:", error.code, error.message);
-        throw error;
-    }
-}
 
 export function onUserChanged(callback) {
     onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        if (user) {
-            console.log(`👤 Auth State: User logged in (${user.uid})`);
-        } else {
-            console.log("👤 Auth State: No user logged in");
-        }
         callback(user);
     });
 }
 
-export async function signUpAgent(email, password, name) {
-    console.log(`📝 Attempting Sign Up for: ${email}`);
+// Google Login
+export async function signInWithGoogle() {
+    console.log("🔵 Google Sign-In...");
+    const provider = new GoogleAuthProvider();
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        console.log("✅ User created in Firebase Auth. Setting up Firestore profile...");
-        await setDoc(doc(db, "users_prof", user.uid), {
-            email: email,
-            displayName: name,
-            profileImageUrl: "",
-            bio: "Hello! I am a new agent on Bilikmatch.",
-            phoneNumber: "",
-            role: "agent"
-        });
-        
-        console.log("🎉 Sign Up successful!");
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        await _ensureAgentProfile(user); // プロフィール作成確認
         return user;
     } catch (error) {
-        console.error("❌ Sign Up Error:", error.code, error.message);
+        console.error("❌ Google Sign-In Error:", error);
         throw error;
     }
 }
 
-export async function signInAgent(email, password) {
-    console.log(`🔑 Attempting Sign In for: ${email}`);
+// Email Sign Up
+export async function signUpWithEmail(email, password, name) {
+    console.log("🔵 Email Sign-Up...");
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log("✅ Sign In successful!");
-        return userCredential.user;
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        const user = result.user;
+        // プロフィール作成
+        await _createAgentProfile(user, name);
+        return user;
     } catch (error) {
-        console.error("❌ Sign In Error:", error.code, error.message);
+        console.error("❌ Sign-Up Error:", error);
         throw error;
     }
 }
 
+// Email Sign In
+export async function signInWithEmail(email, password) {
+    console.log("🔵 Email Sign-In...");
+    try {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        return result.user;
+    } catch (error) {
+        console.error("❌ Sign-In Error:", error);
+        throw error;
+    }
+}
+
+// Logout
 export async function logoutAgent() {
-    console.log("🚪 Logging out...");
     try {
         await firebaseSignOut(auth);
-        console.log("✅ Logout successful");
-        window.location.href = 'tenant_list_view.html'; 
+        console.log("✅ Logged out");
+        window.location.href = 'tenant_list_view.html';
     } catch (error) {
         console.error("❌ Logout Error:", error);
+    }
+}
+
+// Helper: Create Profile
+async function _createAgentProfile(user, displayName) {
+    const docRef = doc(db, "users_prof", user.uid);
+    await setDoc(docRef, {
+        email: user.email,
+        displayName: displayName || 'Agent',
+        profileImageUrl: user.photoURL || '', // Email登録時は空になることが多い
+        bio: "Hello! I am a new agent on Bilikmatch.",
+        phoneNumber: "",
+        role: "agent",
+        createdAt: serverTimestamp()
+    });
+    console.log("📝 Profile created!");
+}
+
+// Helper: Ensure Profile Exists (for Google Login)
+async function _ensureAgentProfile(user) {
+    const docRef = doc(db, "users_prof", user.uid);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+        await _createAgentProfile(user, user.displayName);
     }
 }
 
