@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Profile - BilikMatch</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="reservation.css">
+
+    <style>
+        :root {
+            --primary-color: #673ab7;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --error-color: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .profile-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #ddd;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            overflow: hidden;
+        }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid #eee;
+            padding-top: 1.5rem;
+        }
+        .stat-item b { display: block; font-size: 1.2rem; }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-outline { background: white; border: 1px solid #ddd; color: var(--text-color); }
+        .btn-danger { background: #fee; color: var(--error-color); }
+        .btn:hover { opacity: 0.9; }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            margin-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .listing-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .listing-img { height: 180px; background: #eee; width: 100%; object-fit: cover; }
+        .listing-content { padding: 1rem; }
+        
+        /* ★ Restored: Actions styling */
+        .listing-actions {
+            display: flex;
+            padding: 0.5rem 1rem 1rem;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <a href="tenant_list_view.html" style="color: white; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h2><i class="fas fa-user-tie"></i> My Profile</h2>
+    </div>
+    <div class="header-icons">
+        <i class="far fa-bell" style="font-size: 1.2rem; cursor: pointer;"></i>
+    </div>
+</header>
+
+<div class="container">
+    <div class="profile-card">
+        <div class="avatar" id="agentAvatar"><i class="fas fa-user"></i></div>
+        <h2 id="agentName">Loading Agent...</h2>
+        <p id="agentBio" style="color: #666;">Agent Bio...</p>
+        
+        <div class="stats-row">
+            <div class="stat-item"><b id="listingCount">0</b> Listings</div>
+            <div class="stat-item"><b id="likeCount">0</b> Total Likes</div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-outline" onclick="alert('Edit Profile Clicked')">
+            <i class="far fa-edit"></i> Edit Profile
+        </button>
+        <a href="add_listing.html" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Listing
+        </a>
+    </div>
+
+    <div class="reservation-section" style="margin-bottom: 30px;">
+        <div class="reservation-header">
+            <h3 id="reservationTitle">Book a Viewing</h3>
+            <div class="view-toggle">
+                <label><input type="checkbox" id="agentViewToggle"> Agent View Mode</label>
+            </div>
+        </div>
+        <div class="date-scroll-container">
+            <div class="date-list" id="dateList"></div>
+        </div>
+        <div class="slots-container" id="slotsContainer">
+            <div class="loading-spinner">Initializing slots...</div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <span>My Listings</span>
+    </div>
+    <div class="listings-grid" id="listingsContainer">
+        </div>
+</div>
+
+<div id="bookingModal" class="modal">
+    <div class="modal-content">
+        <h4>Request Viewing</h4>
+        <p id="bookingDateDisplay" class="modal-subtitle"></p>
+        <form id="bookingForm">
+            <input type="hidden" id="bookingSlotId">
+            <div class="form-group">
+                <label>Property Name *</label>
+                <input type="text" id="propName" required placeholder="e.g. Sunway Geo">
+            </div>
+            <div class="form-group">
+                <label>Preferred Meeting Point *</label>
+                <input type="text" id="meetPoint" required placeholder="e.g. Lobby A">
+            </div>
+            <div class="form-group">
+                <label>Message (Optional)</label>
+                <textarea id="msg" rows="2" placeholder="Hi, I would like to view..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-text" onclick="closeModal('bookingModal')">Cancel</button>
+                <button type="submit" class="btn-primary">Send Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="approvalModal" class="modal">
+    <div class="modal-content">
+        <h4>New Request!</h4>
+        <div class="info-block" style="margin: 15px 0;">
+            <p style="margin:5px 0"><strong>Tenant:</strong> <span id="reqTenant"></span></p>
+            <p style="margin:5px 0"><strong>Property:</strong> <span id="reqProp"></span></p>
+            <p style="margin:5px 0"><strong>Meeting:</strong> <span id="reqMeet"></span></p>
+            <p style="margin:5px 0"><strong>Message:</strong> <span id="reqMsg" class="text-muted"></span></p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-danger" id="btnReject">Reject</button>
+            <button class="btn-primary" id="btnApprove">Approve</button>
+        </div>
+    </div>
+</div>
+
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <h4>Booking Details</h4>
+        <div class="info-block" style="margin: 15px 0;">
+            <p style="margin:5px 0"><strong>Tenant:</strong> <span id="detTenant"></span></p>
+            <p style="margin:5px 0"><strong>Property:</strong> <span id="detProp"></span></p>
+            <p style="margin:5px 0"><strong>Meeting:</strong> <span id="detMeet"></span></p>
+            <p style="margin:5px 0"><strong>Message:</strong> <span id="detMsg" class="text-muted"></span></p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-text" onclick="closeModal('detailsModal')">Close</button>
+            <button class="btn-danger" id="btnCancelBooking">Cancel Reservation</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // ★ Added: Import deletePost
+    import { onUserChanged, fetchAgentProfile, fetchAgentPosts, deletePost } from './agent-service.js';
+    import { initReservation } from './reservation.js';
+
+    let currentAgentId = null;
+
+    onUserChanged(async (user) => {
+        if (user) {
+            currentAgentId = user.uid;
+            loadProfile(user.uid);
+            loadListings(user.uid);
+            initReservation(user.uid);
+        } else {
+            document.getElementById('agentName').innerText = "Please Log In";
+        }
+    });
+
+    async function loadProfile(uid) {
+        const profile = await fetchAgentProfile(uid);
+        if (profile) {
+            document.getElementById('agentName').innerText = profile.displayName;
+            document.getElementById('agentBio').innerText = profile.bio;
+            if(profile.profileImageUrl) {
+                document.getElementById('agentAvatar').innerHTML = `<img src="${profile.profileImageUrl}" alt="Profile">`;
+            }
+        }
+    }
+
+    async function loadListings(uid) {
+        const listings = await fetchAgentPosts(uid);
+        const container = document.getElementById('listingsContainer');
+        container.innerHTML = '';
+        
+        let totalLikes = 0;
+        document.getElementById('listingCount').innerText = listings.length;
+
+        listings.forEach(item => {
+            totalLikes += item.likes;
+            container.innerHTML += `
+                <div class="listing-card">
+                    <img src="${item.imageUrl}" class="listing-img" alt="Property">
+                    <div class="listing-content">
+                        <h4 style="margin:0">${item.title}</h4>
+                        <p style="color: var(--primary-color); font-weight: bold;">RM ${item.rent}/mo</p>
+                        <small style="color: #888;"><i class="fas fa-heart"></i> ${item.likes} Likes</small>
+                    </div>
+                    <div class="listing-actions">
+                        <button class="btn btn-outline edit-btn" data-id="${item.id}" style="padding: 5px;">Edit</button>
+                        <button class="btn btn-danger delete-btn" data-id="${item.id}" style="padding: 5px;">Delete</button>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('likeCount').innerText = totalLikes;
+
+        // ★ Restored: Event Listeners for Buttons
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = () => handleDelete(btn.dataset.id);
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = () => {
+                // Navigate to Add/Edit page with ID param
+                window.location.href = `add_listing.html?id=${btn.dataset.id}`;
+            };
+        });
+    }
+
+    // ★ Restored: Delete Handler
+    window.handleDelete = async (id) => {
+        if(confirm('Are you sure you want to delete this listing?')) {
+            try {
+                await deletePost(id);
+                // Refresh list
+                await loadListings(currentAgentId);
+            } catch (e) {
+                alert("Failed to delete: " + e.message);
+            }
+        }
+    };
+    
+    // Helper for modals (for Reservation)
+    window.closeModal = (id) => {
+        document.getElementById(id).classList.remove('show');
+    };
+</script>
+
+</body>
+</html>

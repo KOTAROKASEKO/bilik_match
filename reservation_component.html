@@ -1,0 +1,79 @@
+<div class="reservation-section">
+    <div class="reservation-header">
+        <h3 id="reservationTitle">Book a Viewing</h3>
+        <div class="view-toggle">
+            <label><input type="checkbox" id="agentViewToggle"> Agent View Mode</label>
+        </div>
+    </div>
+
+    <div class="date-scroll-container">
+        <div class="date-list" id="dateList">
+            </div>
+    </div>
+
+    <div class="slots-container" id="slotsContainer">
+        <div class="loading-spinner">Loading slots...</div>
+        </div>
+</div>
+
+<div id="bookingModal" class="modal">
+    <div class="modal-content">
+        <h4>Request Viewing</h4>
+        <p id="bookingDateDisplay" class="modal-subtitle"></p>
+        <form id="bookingForm">
+            <input type="hidden" id="bookingSlotId">
+            
+            <div class="form-group">
+                <label>Property Name *</label>
+                <input type="text" id="propName" required placeholder="e.g. Sunway Geo">
+            </div>
+            
+            <div class="form-group">
+                <label>Preferred Meeting Point *</label>
+                <input type="text" id="meetPoint" required placeholder="e.g. Lobby A">
+            </div>
+
+            <div class="form-group">
+                <label>Message (Optional)</label>
+                <textarea id="msg" rows="2" placeholder="Hi, I would like to view..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-text" onclick="closeModal('bookingModal')">Cancel</button>
+                <button type="submit" class="btn-primary">Send Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="approvalModal" class="modal">
+    <div class="modal-content">
+        <h4>New Request!</h4>
+        <div class="info-block">
+            <p><strong>Tenant:</strong> <span id="reqTenant"></span></p>
+            <p><strong>Property:</strong> <span id="reqProp"></span></p>
+            <p><strong>Meeting:</strong> <span id="reqMeet"></span></p>
+            <p><strong>Message:</strong> <span id="reqMsg" class="text-muted"></span></p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-danger" id="btnReject">Reject</button>
+            <button class="btn-primary" id="btnApprove">Approve</button>
+        </div>
+    </div>
+</div>
+
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <h4>Booking Details</h4>
+        <div class="info-block">
+            <p><strong>Tenant:</strong> <span id="detTenant"></span></p>
+            <p><strong>Property:</strong> <span id="detProp"></span></p>
+            <p><strong>Meeting:</strong> <span id="detMeet"></span></p>
+            <p><strong>Message:</strong> <span id="detMsg" class="text-muted"></span></p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-text" onclick="closeModal('detailsModal')">Close</button>
+            <button class="btn-danger" id="btnCancelBooking">Cancel Reservation</button>
+        </div>
+    </div>
+</div>
