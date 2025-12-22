@@ -3,123 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Potential Tenants | Agent Portal</title>
+    <title>Tenant Discovery | BilikMatch</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; } /* Grey-100 match */
         
-        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-        .filter-chip { transition: all 0.2s; cursor: pointer; }
-        .filter-chip.active { background-color: #2563eb; color: white; border-color: #2563eb; }
-        .view-transition { transition: opacity 0.2s ease-in-out; }
+        /* Deep Purple Theme to match Flutter */
+        .text-primary { color: #673ab7; }
+        .bg-primary { background-color: #673ab7; }
+        .bg-primary-50 { background-color: #ede7f6; }
+        .border-primary { border-color: #673ab7; }
+        .hover-bg-primary:hover { background-color: #5e35b1; }
+
+        .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        
+        /* Gradient Card for Selected Property */
+        .gradient-card {
+            background: linear-gradient(135deg, #2E004F 0%, #1A1A1A 100%);
+            border: 1px solid rgba(192, 132, 252, 0.3);
+        }
+
+        /* Chip Selection Styles */
+        .chip-radio:checked + label {
+            background-color: #673ab7;
+            color: white;
+            border-color: #673ab7;
+        }
+        
+        /* Hide Scrollbar for Hobbies */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <header class="bg-white border-b sticky top-0 z-40">
+    <header class="bg-primary text-white sticky top-0 z-40 shadow-md">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <button onclick="handleBack()" class="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                    <i class="fas fa-arrow-left text-slate-500"></i>
-                </button>
-                <h1 class="text-xl font-bold text-slate-800">Tenant Discovery</h1>
+            <div class="flex items-center gap-3">
+                <i class="fas fa-search text-white/80"></i>
+                <h1 class="text-lg font-bold tracking-wide">Tenant List</h1>
             </div>
             <div class="flex items-center gap-3">
-                <span class="hidden md:inline text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">Agent Portal</span>
-                
-                <button id="auth-btn" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 transition-all flex items-center gap-2 text-white text-sm font-bold shadow-lg shadow-blue-500/20">
+                <button id="auth-btn" class="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-all flex items-center gap-2 text-sm font-semibold backdrop-blur-sm border border-white/10">
                     <i class="fas fa-user"></i> <span>Loading...</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row gap-8">
+    <main class="max-w-7xl mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
         
-        <aside class="w-full md:w-72 space-y-6">
-            <div class="bg-white rounded-2xl p-6 border border-slate-200 card-shadow">
-                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-sliders-h text-blue-600"></i> Filters
-                </h3>
-
-                <div class="mb-6 p-3 bg-blue-50 rounded-xl border border-blue-100">
-                    <label class="text-[10px] font-black text-blue-600 uppercase block mb-2 tracking-wider">Find Tenants For:</label>
-                    <select id="property-selector" onchange="handlePropertyChange()" class="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm font-semibold outline-none transition-all">
-                        <option value="none">-- Select Listing --</option>
-                    </select>
+        <aside class="w-full lg:w-80 space-y-4 shrink-0">
+            
+            <div class="bg-white rounded-2xl p-5 card-shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-lg">Filters</h3>
+                    <button onclick="resetFilters()" class="text-xs font-bold text-primary hover:underline">Clear All</button>
                 </div>
-                
+
                 <div class="mb-6">
-                    <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Search Tenants</label>
+                    <label class="text-xs font-bold text-gray-400 uppercase block mb-2">Target Property</label>
                     <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="search-input" oninput="debounceSearch()" placeholder="Name or occupation..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none transition-all">
+                        <select id="property-selector" onchange="handlePropertyChange()" class="w-full pl-3 pr-8 py-3 bg-primary-50 border border-primary/20 rounded-xl text-sm font-bold text-primary outline-none focus:ring-2 focus:ring-primary/30 appearance-none cursor-pointer">
+                            <option value="none">-- Select Listing to Match --</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none"></i>
                     </div>
                 </div>
 
-                <div class="mb-6">
-                    <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Max Rent (JPY)</label>
-                    <select id="rent-filter" onchange="applyFilters()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none">
-                        <option value="all">Any Price</option>
-                        <option value="50000">Up to ¥50,000</option>
-                        <option value="100000">Up to ¥100,000</option>
-                        <option value="150000">Up to ¥150,000</option>
-                        <option value="200000">Up to ¥200,000</option>
-                    </select>
+                <hr class="border-gray-100 my-4">
+
+                <div class="mb-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fas fa-calendar-alt text-primary text-sm"></i>
+                        <span class="font-bold text-gray-700 text-sm">Tenancy Details</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Move-in</label>
+                            <input type="date" id="date-filter" onchange="applyFilters()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium outline-none focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Pax</label>
+                            <select id="pax-filter" onchange="applyFilters()" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium outline-none focus:border-primary">
+                                <option value="any">Any</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3+">3+</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <button onclick="resetFilters()" class="w-full py-2 text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors">
-                    Reset All Filters
-                </button>
+                <div class="mb-5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fas fa-sliders-h text-primary text-sm"></i>
+                        <span class="font-bold text-gray-700 text-sm">Preferences</span>
+                    </div>
+                    
+                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-2">Room Type</label>
+                    <div class="flex flex-wrap gap-2" id="room-type-container">
+                        <input type="radio" name="roomType" id="rt-any" value="any" class="hidden chip-radio" checked onchange="applyFilters()">
+                        <label for="rt-any" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 cursor-pointer bg-white hover:bg-gray-50 transition-colors">Any</label>
+
+                        <input type="radio" name="roomType" id="rt-single" value="Single" class="hidden chip-radio" onchange="applyFilters()">
+                        <label for="rt-single" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 cursor-pointer bg-white hover:bg-gray-50 transition-colors">Single</label>
+
+                        <input type="radio" name="roomType" id="rt-middle" value="Middle" class="hidden chip-radio" onchange="applyFilters()">
+                        <label for="rt-middle" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 cursor-pointer bg-white hover:bg-gray-50 transition-colors">Middle</label>
+                        
+                        <input type="radio" name="roomType" id="rt-master" value="Master" class="hidden chip-radio" onchange="applyFilters()">
+                        <label for="rt-master" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 cursor-pointer bg-white hover:bg-gray-50 transition-colors">Master</label>
+                    </div>
+
+                    <label class="text-[10px] font-bold text-gray-400 uppercase block mt-4 mb-2">Budget (RM)</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="min-budget" placeholder="Min" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none" onchange="applyFilters()">
+                        <span class="text-gray-400">-</span>
+                        <input type="number" id="max-budget" placeholder="Max" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none" onchange="applyFilters()">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fas fa-user-friends text-primary text-sm"></i>
+                        <span class="font-bold text-gray-700 text-sm">Tenant Profile</span>
+                    </div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-2">Gender</label>
+                    <div class="flex flex-wrap gap-2">
+                        <input type="radio" name="gender" id="g-any" value="any" class="hidden chip-radio" checked onchange="applyFilters()">
+                        <label for="g-any" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 cursor-pointer bg-white hover:bg-gray-50 transition-colors">Any</label>
+
+                        <input type="radio" name="gender" id="g-male" value="Male" class="hidden chip-radio" onchange="applyFilters()">
+                        <label for="g-male" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 cursor-pointer bg-white hover:bg-gray-50 transition-colors">Male</label>
+
+                        <input type="radio" name="gender" id="g-female" value="Female" class="hidden chip-radio" onchange="applyFilters()">
+                        <label for="g-female" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 cursor-pointer bg-white hover:bg-gray-50 transition-colors">Female</label>
+                        
+                        <input type="radio" name="gender" id="g-mix" value="Mix" class="hidden chip-radio" onchange="applyFilters()">
+                        <label for="g-mix" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 cursor-pointer bg-white hover:bg-gray-50 transition-colors">Mix</label>
+                    </div>
+                </div>
             </div>
         </aside>
 
-        <div class="flex-1">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <p id="results-count" class="text-slate-500 text-sm font-medium">Searching...</p>
+        <div class="flex-1 flex flex-col min-w-0">
+            
+            <div class="bg-white rounded-full shadow-sm border border-gray-100 p-2 pl-6 pr-2 mb-6 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow">
+                <div class="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
+                    <i class="fas fa-magic text-primary text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-bold text-gray-800">Search for matching tenants...</h4>
+                    <p class="text-xs text-gray-400">Try "Software engineer in KL"</p>
+                </div>
+                <button onclick="applyFilters()" class="w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <div id="selected-property-card" class="hidden mb-6 rounded-2xl p-4 gradient-card relative overflow-hidden shadow-xl shadow-purple-900/20">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                
+                <div class="relative z-10 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-black/30 border border-purple-400/30 flex items-center justify-center backdrop-blur-sm">
+                            <i class="fas fa-magic text-cyan-300"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[10px] font-black tracking-widest text-purple-200 uppercase">Active Matching</span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]"></span>
+                            </div>
+                            <h3 id="sp-title" class="font-bold text-white text-lg leading-tight">Property Name</h3>
+                            <p id="sp-desc" class="text-xs text-gray-300 mt-0.5">Location • RM 0</p>
+                        </div>
+                    </div>
+                    <button onclick="clearPropertySelection()" class="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:bg-white/10 transition-colors">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
                 </div>
             </div>
 
-            <div id="tenant-grid" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <p id="results-count" class="text-gray-500 text-sm font-medium">Loading...</p>
+                <div class="text-xs text-gray-400 flex items-center gap-1">
+                    <i class="fas fa-sort-amount-down"></i> Recent First
                 </div>
+            </div>
+
+            <div id="tenant-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                </div>
+            
+            <div id="loading-spinner" class="hidden py-8 text-center">
+                <i class="fas fa-circle-notch fa-spin text-primary text-2xl"></i>
+            </div>
         </div>
     </main>
 
-    <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl transition-all transform scale-95 opacity-0" id="modal-content">
-            <div class="h-32 bg-blue-600 relative p-6 flex justify-end">
-                <button onclick="closeModal()" class="w-10 h-10 bg-black/10 hover:bg-black/20 text-white rounded-full flex items-center justify-center backdrop-blur-md">
-                    <i class="fas fa-times"></i>
+    <div id="modal-backdrop" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all transform scale-95 opacity-0" id="modal-content">
+            <div class="h-28 bg-primary relative p-4 flex justify-end">
+                <button onclick="closeModal()" class="w-8 h-8 bg-black/10 hover:bg-black/20 text-white rounded-full flex items-center justify-center backdrop-blur-md">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
-            <div class="px-8 pb-8 -mt-12">
-                <div class="flex items-end gap-4 mb-6">
-                    <img id="m-avatar" src="" class="w-24 h-24 rounded-2xl border-4 border-white shadow-lg bg-white object-cover" alt="Avatar">
-                    <div class="pb-2">
-                        <h2 id="m-name" class="text-2xl font-bold text-slate-900 leading-tight">Name</h2>
-                        <p id="m-occ" class="text-blue-600 font-semibold text-sm">Occupation</p>
+            <div class="px-6 pb-6 -mt-10">
+                <div class="flex items-end gap-4 mb-5">
+                    <img id="m-avatar" src="" class="w-20 h-20 rounded-2xl border-4 border-white shadow-lg bg-white object-cover" alt="Avatar">
+                    <div class="pb-1">
+                        <h2 id="m-name" class="text-xl font-bold text-gray-900 leading-tight">Name</h2>
+                        <p id="m-occ" class="text-primary font-semibold text-xs">Occupation</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-3 mb-6">
-                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Budget</p>
-                        <p id="m-budget" class="text-sm font-bold text-slate-800">¥0</p>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Area</p>
-                        <p id="m-area" class="text-sm font-bold text-slate-800">-</p>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-center">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Match</p>
-                        <p id="m-match" class="text-sm font-bold text-blue-600">0%</p>
-                    </div>
+                
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span id="m-tag-gender" class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold">Gender</span>
+                    <span id="m-tag-budget" class="px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-[10px] font-bold">Budget</span>
                 </div>
-                <p id="m-bio" class="text-sm text-slate-600 leading-relaxed italic mb-8">No bio available.</p>
-                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-500/30">
-                    Propose Property
+
+                <div class="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
+                    <p id="m-bio" class="text-sm text-gray-600 leading-relaxed italic">No bio available.</p>
+                </div>
+
+                <button class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/30 transition-all transform active:scale-95">
+                    Start Chat
                 </button>
             </div>
         </div>
@@ -131,123 +241,123 @@
     // State
     let agentProperties = [];
     let searchDebounceTimeout;
+    let selectedPropertyId = 'none';
 
-    // --- 1. Auth & Initialization ---
-    console.log("🚀 Initializing Tenant Discovery...");
+    // --- Initialization ---
+    console.log("🚀 Initializing Malaysia Tenant List...");
 
     onUserChanged(async (user) => {
         const authBtn = document.getElementById('auth-btn');
-        const propSelector = document.getElementById('property-selector');
         
         if (user) {
-            // ★ LOGGED IN STATE
-            console.log(`👤 Logged in as: ${user.displayName}`);
-            
-            // 1. Update Button to "Profile"
-            authBtn.innerHTML = `
-                <i class="fas fa-user-circle text-lg"></i>
-                <span>${user.displayName || 'Profile'}</span>
-            `;
+            authBtn.innerHTML = `<i class="fas fa-user-circle text-lg"></i> <span>${user.displayName || 'Profile'}</span>`;
             authBtn.onclick = () => window.location.href = 'profile.html';
-            authBtn.classList.remove('bg-gray-800', 'hover:bg-gray-900');
-            authBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-
-            // 2. Load Properties for Dropdown
             await loadProperties(user.uid);
-
         } else {
-            // ★ GUEST / LOGGED OUT STATE
-            console.log("👤 Guest User");
-
-            // 1. Update Button to "Sign In"
-            authBtn.innerHTML = `
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Sign In</span>
-            `;
+            authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> <span>Sign In</span>`;
             authBtn.onclick = () => window.location.href = 'login.html';
-            
-            // Optional: Styling to make it distinct
-            authBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            authBtn.classList.add('bg-gray-800', 'hover:bg-gray-900');
-
-            // 2. Clear Property Dropdown
-            propSelector.innerHTML = '<option value="none">Login to see your listings</option>';
-            propSelector.disabled = true;
+            loadDemoProperties();
         }
-
-        // Always load initial tenant list (Public View)
         applyFilters(); 
     });
 
     async function loadProperties(uid) {
         agentProperties = await fetchAgentPosts(uid);
+        populatePropertySelector();
+    }
+
+    function loadDemoProperties() {
+        agentProperties = [
+            { id: 'd1', title: 'Luxury Condo KLCC', rent: 3500, location: 'KLCC', area: 'Kuala Lumpur', roomType: 'Master', gender: 'Mix' },
+            { id: 'd2', title: 'Cozy Room Petaling Jaya', rent: 850, location: 'PJ', area: 'Selangor', roomType: 'Single', gender: 'Female' }
+        ];
+        populatePropertySelector();
+    }
+
+    function populatePropertySelector() {
         const selector = document.getElementById('property-selector');
-        selector.disabled = false;
-        selector.innerHTML = '<option value="none">-- Filter by My Listing --</option>';
-        
+        selector.innerHTML = '<option value="none">-- Select Listing to Match --</option>';
         agentProperties.forEach(p => {
             const opt = document.createElement('option');
             opt.value = p.id;
-            opt.textContent = p.title; // Ensure 'title' matches your Firestore field
+            opt.textContent = p.title;
             selector.appendChild(opt);
         });
     }
 
-    // --- 2. Filter Logic ---
-
-    window.handleBack = () => window.history.back();
+    // --- Filter Logic ---
 
     window.resetFilters = () => {
-        document.getElementById('search-input').value = '';
-        document.getElementById('rent-filter').value = 'all';
         document.getElementById('property-selector').value = 'none';
-        applyFilters();
-    };
-
-    window.debounceSearch = () => {
-        clearTimeout(searchDebounceTimeout);
-        searchDebounceTimeout = setTimeout(applyFilters, 500);
+        document.getElementById('date-filter').value = '';
+        document.getElementById('pax-filter').value = 'any';
+        document.getElementById('rt-any').checked = true;
+        document.getElementById('g-any').checked = true;
+        document.getElementById('min-budget').value = '';
+        document.getElementById('max-budget').value = '';
+        
+        handlePropertyChange(); // Resets card and triggers apply
     };
 
     window.handlePropertyChange = () => {
-        const propertyId = document.getElementById('property-selector').value;
-        const property = agentProperties.find(p => p.id === propertyId);
+        selectedPropertyId = document.getElementById('property-selector').value;
+        const card = document.getElementById('selected-property-card');
+        const property = agentProperties.find(p => p.id === selectedPropertyId);
 
-        if (property && property.rent) {
-            // Auto-filter by property rent (example logic)
-            // Ideally you'd set this to match tenants with budget >= property.rent
-            console.log("Filtering for property:", property.title);
+        if (property) {
+            // Show Gradient Card
+            card.classList.remove('hidden');
+            document.getElementById('sp-title').innerText = property.title;
+            document.getElementById('sp-desc').innerText = `${property.location} • RM ${property.rent}`;
+            
+            // Auto-fill filters based on property (Optional, but smart)
+            // document.getElementById('g-mix').checked = true; // Example
+        } else {
+            card.classList.add('hidden');
         }
         applyFilters();
     };
 
+    window.clearPropertySelection = () => {
+        document.getElementById('property-selector').value = 'none';
+        handlePropertyChange();
+    };
+
     window.applyFilters = async () => {
-        const textQuery = document.getElementById('search-input').value;
-        const rentVal = document.getElementById('rent-filter').value;
-        const propertyId = document.getElementById('property-selector').value;
-
-        // You can pass property details to searchTenants to improve matching algo
-        const selectedProperty = agentProperties.find(p => p.id === propertyId);
-
+        const property = agentProperties.find(p => p.id === selectedPropertyId);
+        
+        // Gather Basic Filters
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+        const roomType = document.querySelector('input[name="roomType"]:checked').value;
+        const minB = document.getElementById('min-budget').value;
+        const maxB = document.getElementById('max-budget').value;
+        
+        // Note: agent-service.js might need updates to handle 'min/max' strictly, 
+        // currently it mostly handles 'rent' as budget. 
+        // We will pass generic query params.
+        
         const filter = {
-            query: textQuery,
-            rent: rentVal === 'all' ? 0 : parseInt(rentVal),
-            // Pass the whole property object if selected, for smarter backend matching
-            targetProperty: selectedProperty 
+            query: "", // Could add text search input back if needed
+            rent: maxB ? parseInt(maxB) : (property ? property.rent : 0), 
+            gender: gender === 'any' ? (property ? property.gender : 'Mix') : gender,
+            // area: property ? property.location : null // Pass area if property selected
         };
 
+        // UI Loading State
+        const grid = document.getElementById('tenant-grid');
         document.getElementById('results-count').innerText = "Searching...";
+        // grid.innerHTML = ''; // Optional: Clear or keep old while loading
         
         try {
             const results = await searchTenants(filter);
             renderGrid(results);
         } catch (e) {
             console.error(e);
-            document.getElementById('results-count').innerText = "Error loading tenants.";
+            document.getElementById('results-count').innerText = "Error loading.";
         }
     };
 
-    // --- 3. Rendering ---
+    // --- Rendering (Matches TenantGridCard.dart) ---
 
     function renderGrid(tenants) {
         const grid = document.getElementById('tenant-grid');
@@ -255,40 +365,62 @@
         document.getElementById('results-count').innerText = `${tenants.length} Tenants Found`;
 
         if (tenants.length === 0) {
-            grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">No tenants found.</div>`;
+            grid.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400">No tenants found matching your criteria.</div>`;
             return;
         }
 
         tenants.forEach(t => {
+            // Mock Data if missing from Algolia
+            const age = t.age || Math.floor(Math.random() * (35 - 20 + 1) + 20); 
+            const isOnline = Math.random() > 0.7;
+            const hobbies = t.hobbies || ['Reading', 'Coffee', 'Gym']; 
+            
             const card = document.createElement('div');
-            card.className = "bg-white rounded-2xl p-5 border border-slate-200 card-shadow hover:shadow-lg transition-all cursor-pointer";
+            card.className = "bg-white rounded-2xl p-3 border border-gray-100 card-shadow hover:shadow-lg transition-all cursor-pointer flex items-start gap-3";
             card.onclick = () => openModal(t);
 
             card.innerHTML = `
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <img src="${t.avatar}" class="w-12 h-12 rounded-xl bg-slate-100 object-cover" alt="User">
-                        <div>
-                            <h4 class="font-bold text-slate-800 text-sm">${t.name}</h4>
-                            <p class="text-xs text-slate-500">${t.occupation}</p>
+                <div class="relative shrink-0">
+                    <img src="${t.avatar}" class="w-14 h-14 rounded-full bg-gray-100 object-cover border border-gray-100" alt="User">
+                    ${isOnline ? `<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>` : ''}
+                </div>
+
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-baseline mb-1">
+                        <h4 class="font-bold text-[#B45309] text-base truncate pr-2">${t.name}</h4>
+                        <span class="text-xs font-medium text-gray-400 shrink-0">${age} yrs</span>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5 mb-2.5">
+                         <span class="px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold flex items-center gap-1">
+                            ${t.gender || 'Mix'}
+                         </span>
+                         <span class="px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 text-[10px] font-bold flex items-center gap-1 truncate max-w-[120px]">
+                            <i class="fas fa-briefcase text-[9px]"></i> ${t.occupation}
+                         </span>
+                    </div>
+
+                    <div class="space-y-0.5 mb-2.5">
+                        <div class="flex items-center gap-1.5 text-xs text-gray-600">
+                            <i class="fas fa-map-marker-alt text-gray-400 w-3 text-center"></i>
+                            <span class="truncate">${t.area}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs text-gray-600">
+                            <i class="fas fa-dollar-sign text-gray-400 w-3 text-center"></i>
+                            <span class="font-semibold">RM ${t.budget.toLocaleString()} / mo</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs text-gray-600">
+                            <i class="fas fa-calendar text-gray-400 w-3 text-center"></i>
+                            <span>Move in: ${t.date}</span>
                         </div>
                     </div>
-                    <span class="px-2 py-1 rounded-lg bg-blue-50 text-blue-600 text-[10px] font-bold">
-                        ${t.match}% MATCH
-                    </span>
-                </div>
-                <div class="space-y-2">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-400">Budget</span>
-                        <span class="font-bold text-slate-700">¥${t.budget.toLocaleString()}</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-400">Area</span>
-                        <span class="font-bold text-slate-700">${t.area}</span>
-                    </div>
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-400">Move-in</span>
-                        <span class="font-bold text-slate-700">${t.date}</span>
+
+                    <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                        ${hobbies.map(h => `
+                            <span class="px-2 py-0.5 rounded-full border border-gray-200 text-[9px] font-medium text-gray-500 whitespace-nowrap">
+                                ${h}
+                            </span>
+                        `).join('')}
                     </div>
                 </div>
             `;
@@ -296,38 +428,51 @@
         });
     }
 
-    // --- 4. Modal ---
+    // --- Modal ---
     
     window.openModal = (t) => {
+        // Populate Data
         document.getElementById('m-avatar').src = t.avatar;
         document.getElementById('m-name').innerText = t.name;
+        document.getElementById('m-age').innerText = `${t.age || 24} yrs`;
         document.getElementById('m-occ').innerText = t.occupation;
-        document.getElementById('m-budget').innerText = `¥${t.budget.toLocaleString()}`;
+        
+        document.getElementById('m-gender').innerHTML = `<i class="fas fa-venus-mars mr-1"></i> ${t.gender || 'Mix'}`;
+        
+        document.getElementById('m-budget').innerText = `RM ${t.budget}`;
+        document.getElementById('m-date').innerText = t.date || 'Immediately';
         document.getElementById('m-area').innerText = t.area;
-        document.getElementById('m-bio').innerText = t.bio || "No details provided.";
-        document.getElementById('m-match').innerText = `${t.match}%`;
+        document.getElementById('m-bio').innerText = t.bio || "Hi! I am looking for a room in KL. Clean and friendly.";
         
-        const modal = document.getElementById('modal-backdrop');
+        const hobbiesContainer = document.getElementById('m-hobbies');
+        hobbiesContainer.innerHTML = (t.hobbies || []).map(h => 
+            `<span class="px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-600 border border-gray-200">${h}</span>`
+        ).join('');
+
+        // Show Modal
+        const backdrop = document.getElementById('modal-backdrop');
         const content = document.getElementById('modal-content');
-        modal.classList.remove('hidden');
         
-        // Simple animation
-        setTimeout(() => {
-            content.classList.remove('scale-95', 'opacity-0');
-            content.classList.add('scale-100', 'opacity-100');
-        }, 10);
+        backdrop.classList.remove('hidden');
+        // Trigger reflow
+        void backdrop.offsetWidth;
+        
+        backdrop.classList.remove('opacity-0');
+        content.classList.remove('translate-y-full', 'sm:scale-95');
+        content.classList.add('translate-y-0', 'sm:scale-100');
     };
 
     window.closeModal = () => {
-        const modal = document.getElementById('modal-backdrop');
+        const backdrop = document.getElementById('modal-backdrop');
         const content = document.getElementById('modal-content');
         
-        content.classList.remove('scale-100', 'opacity-100');
-        content.classList.add('scale-95', 'opacity-0');
+        backdrop.classList.add('opacity-0');
+        content.classList.remove('translate-y-0', 'sm:scale-100');
+        content.classList.add('translate-y-full', 'sm:scale-95');
         
         setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 200);
+            backdrop.classList.add('hidden');
+        }, 300);
     };
 </script>
 </body>
