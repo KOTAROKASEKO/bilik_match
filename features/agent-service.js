@@ -311,3 +311,48 @@ function calculateMatchScore(tenant, property) {
     const finalScore = Math.min(score, 99);
     return finalScore;
 }
+
+export async function startChat(otherUserId, otherUserName, otherUserPhoto) {
+    const user = auth.currentUser;
+    if (!user) {
+        alert("Please login first");
+        return;
+    }
+    
+    // Prevent chatting with self
+    if (user.uid === otherUserId) {
+        alert("You cannot chat with yourself.");
+        return;
+    }
+
+    const myUid = user.uid;
+    // Generate consistent Thread ID (Alphabetical order of UIDs)
+    const uids = [myUid, otherUserId].sort();
+    const threadId = uids.join('_');
+
+    console.log(`💬 Starting chat thread: ${threadId}`);
+
+    try {
+        const docRef = doc(db, 'chats', threadId);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+            // Create new thread
+            await setDoc(docRef, {
+                participants: uids,
+                whoSent: myUid,
+                whoReceived: otherUserId,
+                lastMessage: "Started a conversation",
+                timeStamp: serverTimestamp(),
+                [`unreadCount_${otherUserId}`]: 1,
+                [`unreadCount_${myUid}`]: 0,
+            });
+        }
+        
+        // Redirect
+        window.location.href = 'chat/chat.html';
+    } catch (e) {
+        console.error("Error starting chat:", e);
+        alert("Failed to start chat. See console.");
+    }
+}

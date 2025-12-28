@@ -8,9 +8,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; } /* Grey-100 match */
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; } 
         
-        /* Deep Purple Theme to match Flutter */
         .text-primary { color: #673ab7; }
         .bg-primary { background-color: #673ab7; }
         .bg-primary-50 { background-color: #ede7f6; }
@@ -19,20 +18,17 @@
 
         .card-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         
-        /* Gradient Card for Selected Property */
         .gradient-card {
             background: linear-gradient(135deg, #2E004F 0%, #1A1A1A 100%);
             border: 1px solid rgba(192, 132, 252, 0.3);
         }
 
-        /* Chip Selection Styles */
         .chip-radio:checked + label {
             background-color: #673ab7;
             color: white;
             border-color: #673ab7;
         }
         
-        /* Hide Scrollbar for Hobbies */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -56,7 +52,6 @@
     <main class="max-w-7xl mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
         
         <aside class="w-full lg:w-80 space-y-4 shrink-0">
-            
             <div class="bg-white rounded-2xl p-5 card-shadow">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-gray-800 text-lg">Filters</h3>
@@ -203,44 +198,71 @@
         </div>
     </main>
 
-    <div id="modal-backdrop" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all transform scale-95 opacity-0" id="modal-content">
-            <div class="h-28 bg-primary relative p-4 flex justify-end">
-                <button onclick="closeModal()" class="w-8 h-8 bg-black/10 hover:bg-black/20 text-white rounded-full flex items-center justify-center backdrop-blur-md">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-            </div>
-            <div class="px-6 pb-6 -mt-10">
-                <div class="flex items-end gap-4 mb-5">
-                    <img id="m-avatar" src="" class="w-20 h-20 rounded-2xl border-4 border-white shadow-lg bg-white object-cover" alt="Avatar">
-                    <div class="pb-1">
-                        <h2 id="m-name" class="text-xl font-bold text-gray-900 leading-tight">Name</h2>
-                        <p id="m-occ" class="text-primary font-semibold text-xs">Occupation</p>
-                    </div>
-                </div>
+    <div id="modal-backdrop" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm hidden z-[100] flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transition-all duration-300 transform scale-95 opacity-0 relative flex flex-col max-h-[90vh]" id="modal-content">
+            
+            <button onclick="closeModal()" class="absolute top-4 right-4 z-50 w-8 h-8 bg-black/10 hover:bg-black/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition cursor-pointer">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+
+            <div class="overflow-y-auto custom-scroll w-full h-full">
                 
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span id="m-tag-gender" class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold">Gender</span>
-                    <span id="m-tag-budget" class="px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-[10px] font-bold">Budget</span>
-                </div>
+                <div class="h-28 bg-primary w-full shrink-0"></div> 
 
-                <div class="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
-                    <p id="m-bio" class="text-sm text-gray-600 leading-relaxed italic">No bio available.</p>
-                </div>
+                <div class="px-6 pb-6 -mt-10 relative z-10">
+                    
+                    <div class="flex items-end gap-4 mb-5">
+                        <img id="m-avatar" src="" class="w-20 h-20 rounded-2xl border-4 border-white shadow-lg bg-white object-cover" alt="Avatar">
+                        <div class="pb-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h2 id="m-name" class="text-xl font-bold text-gray-900 leading-tight truncate">Name</h2>
+                                <span id="m-age" class="text-xs text-gray-500 font-medium bg-gray-100 px-2 py-0.5 rounded-full"></span>
+                            </div>
+                            <p id="m-occ" class="text-primary font-semibold text-xs truncate">Occupation</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span id="m-gender" class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold"></span>
+                        <span id="m-budget" class="px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-[10px] font-bold"></span>
+                    </div>
 
-                <button class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/30 transition-all transform active:scale-95">
-                    Start Chat
-                </button>
+                    <div class="grid grid-cols-2 gap-4 mb-4 text-xs">
+                        <div class="bg-gray-50 p-2 rounded-lg">
+                            <span class="text-gray-400 block text-[10px] uppercase font-bold">Move In</span>
+                            <span id="m-date" class="font-semibold text-gray-700"></span>
+                        </div>
+                        <div class="bg-gray-50 p-2 rounded-lg">
+                            <span class="text-gray-400 block text-[10px] uppercase font-bold">Preferred Area</span>
+                            <span id="m-area" class="font-semibold text-gray-700 truncate"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Hobbies</p>
+                        <div id="m-hobbies" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">About Me</p>
+                        <p id="m-bio" class="text-sm text-gray-600 leading-relaxed italic">No bio available.</p>
+                    </div>
+
+                    <button class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/30 transition-all transform active:scale-95">
+                        Start Chat
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
 <script type="module">
-    import { onUserChanged, searchTenants, fetchAgentPosts } from './agent-service.js';
+    import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { initAnalytics, recordVisit } from './analytics.js'; // Ensure path is correct relative to this file
+    import { onUserChanged, searchTenants, fetchAgentPosts, startChat } from './agent-service.js';
 
     // State
     let agentProperties = [];
-    let searchDebounceTimeout;
     let selectedPropertyId = 'none';
 
     // --- Initialization ---
@@ -252,18 +274,27 @@
         if (user) {
             authBtn.innerHTML = `<i class="fas fa-user-circle text-lg"></i> <span>${user.displayName || 'Profile'}</span>`;
             authBtn.onclick = () => window.location.href = 'profile.html';
+            
+            const chatBtn = document.createElement('button');
+            chatBtn.className = "px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 transition-all flex items-center gap-2 text-sm font-semibold backdrop-blur-sm border border-white/10";
+            chatBtn.innerHTML = `<i class="fas fa-comments"></i> <span>Messages</span>`;
+            chatBtn.onclick = () => window.location.href = 'chat/chat.html';
+            authBtn.parentNode.insertBefore(chatBtn, authBtn);
+            
             await loadProperties(user.uid);
         } else {
             authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> <span>Sign In</span>`;
-            authBtn.onclick = () => window.location.href = 'login.html';
+            authBtn.onclick = () => window.location.href = 'signin/sign_in.html';
             loadDemoProperties();
         }
         applyFilters(); 
     });
 
     async function loadProperties(uid) {
-        agentProperties = await fetchAgentPosts(uid);
-        populatePropertySelector();
+        try {
+            agentProperties = await fetchAgentPosts(uid);
+            populatePropertySelector();
+        } catch(e) { console.error(e); }
     }
 
     function loadDemoProperties() {
@@ -285,8 +316,7 @@
         });
     }
 
-    // --- Filter Logic ---
-
+    // --- Global Functions for HTML onClick ---
     window.resetFilters = () => {
         document.getElementById('property-selector').value = 'none';
         document.getElementById('date-filter').value = '';
@@ -295,8 +325,7 @@
         document.getElementById('g-any').checked = true;
         document.getElementById('min-budget').value = '';
         document.getElementById('max-budget').value = '';
-        
-        handlePropertyChange(); // Resets card and triggers apply
+        handlePropertyChange(); 
     };
 
     window.handlePropertyChange = () => {
@@ -305,13 +334,9 @@
         const property = agentProperties.find(p => p.id === selectedPropertyId);
 
         if (property) {
-            // Show Gradient Card
             card.classList.remove('hidden');
             document.getElementById('sp-title').innerText = property.title;
             document.getElementById('sp-desc').innerText = `${property.location} • RM ${property.rent}`;
-            
-            // Auto-fill filters based on property (Optional, but smart)
-            // document.getElementById('g-mix').checked = true; // Example
         } else {
             card.classList.add('hidden');
         }
@@ -325,28 +350,17 @@
 
     window.applyFilters = async () => {
         const property = agentProperties.find(p => p.id === selectedPropertyId);
-        
-        // Gather Basic Filters
         const gender = document.querySelector('input[name="gender"]:checked').value;
-        const roomType = document.querySelector('input[name="roomType"]:checked').value;
-        const minB = document.getElementById('min-budget').value;
         const maxB = document.getElementById('max-budget').value;
         
-        // Note: agent-service.js might need updates to handle 'min/max' strictly, 
-        // currently it mostly handles 'rent' as budget. 
-        // We will pass generic query params.
-        
         const filter = {
-            query: "", // Could add text search input back if needed
+            query: "", 
             rent: maxB ? parseInt(maxB) : (property ? property.rent : 0), 
             gender: gender === 'any' ? (property ? property.gender : 'Mix') : gender,
-            // area: property ? property.location : null // Pass area if property selected
         };
 
-        // UI Loading State
         const grid = document.getElementById('tenant-grid');
         document.getElementById('results-count').innerText = "Searching...";
-        // grid.innerHTML = ''; // Optional: Clear or keep old while loading
         
         try {
             const results = await searchTenants(filter);
@@ -356,8 +370,6 @@
             document.getElementById('results-count').innerText = "Error loading.";
         }
     };
-
-    // --- Rendering (Matches TenantGridCard.dart) ---
 
     function renderGrid(tenants) {
         const grid = document.getElementById('tenant-grid');
@@ -370,10 +382,8 @@
         }
 
         tenants.forEach(t => {
-            // Mock Data if missing from Algolia
-            const age = t.age || Math.floor(Math.random() * (35 - 20 + 1) + 20); 
+            const age = t.age || 24; 
             const isOnline = Math.random() > 0.7;
-            const hobbies = t.hobbies || ['Reading', 'Coffee', 'Gym']; 
             
             const card = document.createElement('div');
             card.className = "bg-white rounded-2xl p-3 border border-gray-100 card-shadow hover:shadow-lg transition-all cursor-pointer flex items-start gap-3";
@@ -384,13 +394,11 @@
                     <img src="${t.avatar}" class="w-14 h-14 rounded-full bg-gray-100 object-cover border border-gray-100" alt="User">
                     ${isOnline ? `<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>` : ''}
                 </div>
-
                 <div class="flex-1 min-w-0">
                     <div class="flex justify-between items-baseline mb-1">
                         <h4 class="font-bold text-[#B45309] text-base truncate pr-2">${t.name}</h4>
                         <span class="text-xs font-medium text-gray-400 shrink-0">${age} yrs</span>
                     </div>
-
                     <div class="flex flex-wrap gap-1.5 mb-2.5">
                          <span class="px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold flex items-center gap-1">
                             ${t.gender || 'Mix'}
@@ -399,7 +407,6 @@
                             <i class="fas fa-briefcase text-[9px]"></i> ${t.occupation}
                          </span>
                     </div>
-
                     <div class="space-y-0.5 mb-2.5">
                         <div class="flex items-center gap-1.5 text-xs text-gray-600">
                             <i class="fas fa-map-marker-alt text-gray-400 w-3 text-center"></i>
@@ -409,18 +416,6 @@
                             <i class="fas fa-dollar-sign text-gray-400 w-3 text-center"></i>
                             <span class="font-semibold">RM ${t.budget.toLocaleString()} / mo</span>
                         </div>
-                        <div class="flex items-center gap-1.5 text-xs text-gray-600">
-                            <i class="fas fa-calendar text-gray-400 w-3 text-center"></i>
-                            <span>Move in: ${t.date}</span>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
-                        ${hobbies.map(h => `
-                            <span class="px-2 py-0.5 rounded-full border border-gray-200 text-[9px] font-medium text-gray-500 whitespace-nowrap">
-                                ${h}
-                            </span>
-                        `).join('')}
                     </div>
                 </div>
             `;
@@ -428,38 +423,44 @@
         });
     }
 
-    // --- Modal ---
-    
+    // --- FIXED Modal Logic ---
     window.openModal = (t) => {
-        // Populate Data
-        document.getElementById('m-avatar').src = t.avatar;
-        document.getElementById('m-name').innerText = t.name;
-        document.getElementById('m-age').innerText = `${t.age || 24} yrs`;
-        document.getElementById('m-occ').innerText = t.occupation;
+        // 1. Populate Data
+        if(document.getElementById('m-avatar')) document.getElementById('m-avatar').src = t.avatar;
+        if(document.getElementById('m-name')) document.getElementById('m-name').innerText = t.name;
+        if(document.getElementById('m-age')) document.getElementById('m-age').innerText = `${t.age || 24} yrs`;
+        if(document.getElementById('m-occ')) document.getElementById('m-occ').innerText = t.occupation;
         
-        document.getElementById('m-gender').innerHTML = `<i class="fas fa-venus-mars mr-1"></i> ${t.gender || 'Mix'}`;
+        if(document.getElementById('m-gender')) document.getElementById('m-gender').innerText = t.gender || 'Mix';
+        if(document.getElementById('m-budget')) document.getElementById('m-budget').innerText = `RM ${t.budget}`;
         
-        document.getElementById('m-budget').innerText = `RM ${t.budget}`;
-        document.getElementById('m-date').innerText = t.date || 'Immediately';
-        document.getElementById('m-area').innerText = t.area;
-        document.getElementById('m-bio').innerText = t.bio || "Hi! I am looking for a room in KL. Clean and friendly.";
+        if(document.getElementById('m-date')) document.getElementById('m-date').innerText = t.date || 'ASAP';
+        if(document.getElementById('m-area')) document.getElementById('m-area').innerText = t.area || 'Any';
+        if(document.getElementById('m-bio')) document.getElementById('m-bio').innerText = t.bio || "No bio available.";
         
         const hobbiesContainer = document.getElementById('m-hobbies');
-        hobbiesContainer.innerHTML = (t.hobbies || []).map(h => 
-            `<span class="px-3 py-1.5 bg-gray-100 rounded-lg text-xs font-medium text-gray-600 border border-gray-200">${h}</span>`
-        ).join('');
+        if(hobbiesContainer) {
+             hobbiesContainer.innerHTML = (t.hobbies || ['None']).map(h => 
+                `<span class="px-2 py-1 bg-gray-100 rounded text-[10px] font-bold text-gray-500 border border-gray-200">${h}</span>`
+            ).join('');
+        }
 
-        // Show Modal
+        // 2. Bind Start Chat
+        const chatBtn = document.querySelector('#modal-content button.bg-primary');
+        if(chatBtn) {
+            chatBtn.onclick = () => startChat(t.id, t.name, t.avatar);
+        }
+
+        // 3. Show Modal with Transition
         const backdrop = document.getElementById('modal-backdrop');
         const content = document.getElementById('modal-content');
         
         backdrop.classList.remove('hidden');
-        // Trigger reflow
-        void backdrop.offsetWidth;
+        void backdrop.offsetWidth; // Force Reflow
         
         backdrop.classList.remove('opacity-0');
-        content.classList.remove('translate-y-full', 'sm:scale-95');
-        content.classList.add('translate-y-0', 'sm:scale-100');
+        content.classList.remove('opacity-0', 'translate-y-full', 'scale-95'); // Remove invisible states
+        content.classList.add('opacity-100', 'translate-y-0', 'scale-100'); // Add visible states
     };
 
     window.closeModal = () => {
@@ -467,13 +468,38 @@
         const content = document.getElementById('modal-content');
         
         backdrop.classList.add('opacity-0');
-        content.classList.remove('translate-y-0', 'sm:scale-100');
-        content.classList.add('translate-y-full', 'sm:scale-95');
+        content.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+        content.classList.add('opacity-0', 'translate-y-full', 'scale-95');
         
         setTimeout(() => {
             backdrop.classList.add('hidden');
         }, 300);
     };
+
+
+    
+
+    const firebaseConfig = {
+        // ... (Paste your config here just in case this page loads standalone) ...
+        apiKey: "AIzaSy...",
+        authDomain: "...",
+        projectId: "...",
+        // ★ Don't forget this!
+        measurementId: "G-XXXXXXXXXX" 
+    };
+
+    // 2. SAFE INITIALIZATION:
+    // If agent-service.js already started Firebase, reuse it (getApp).
+    // If not, start it fresh (initializeApp).
+    const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
+    // 3. Start Tracking
+    initAnalytics(app);
+    recordVisit();
 </script>
+</body>
+</html>
+</body>
+</html>
 </body>
 </html>
