@@ -13,6 +13,7 @@ import {
     GoogleAuthProvider, signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import algoliasearch from "https://cdn.jsdelivr.net/npm/algoliasearch@4.22.1/dist/algoliasearch-lite.esm.browser.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
 // --- Configuration ---
 const firebaseConfig = {
@@ -34,6 +35,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const algoliaClient = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_SEARCH_KEY);
 const tenantIndex = algoliaClient.initIndex(ALGOLIA_INDEX_NAME);
+const functions = getFunctions(app, 'us-central1'); // Check if your function region is 'us-central1'
 
 // --- Auth Functions ---
 
@@ -122,36 +124,6 @@ async function _ensureAgentProfile(user) {
 
 // --- Agent Profile Repository ---
 
-export async function fetchAgentProfile(userId) {
-    console.log(`📡 Fetching profile for UID: ${userId}`);
-    if (!userId) return null;
-    try {
-        const docRef = doc(db, "users_prof", userId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            console.log("📄 Profile found:", data.displayName);
-            return {
-                uid: docSnap.id,
-                email: data.email || '',
-                displayName: data.displayName || 'New user',
-                profileImageUrl: data.profileImageUrl || '',
-                bio: data.bio || '',
-                phoneNumber: data.phoneNumber || ''
-            };
-        } else {
-            console.warn("⚠️ Profile document does not exist in Firestore");
-            return null;
-        }
-    } catch (error) {
-        console.error("❌ Error fetching profile:", error);
-        throw error;
-    }
-}
-
-// --- Listings Repository ---
-
 export async function fetchAgentPosts(userId) {
     console.log(`📡 Fetching listings for UID: ${userId}`);
     try {
@@ -163,6 +135,17 @@ export async function fetchAgentPosts(userId) {
         const querySnapshot = await getDocs(q);
         const posts = querySnapshot.docs.map(doc => {
             const data = doc.data();
+            
+            // ★ Prepare _geoloc from Firestore Geopoint
+            // (Mapping Firestore data to the structure you requested)
+            let _geoloc = null;
+            if (data.position && data.position.geopoint) {
+                _geoloc = {
+                    lat: data.position.geopoint.latitude,
+                    lng: data.position.geopoint.longitude // Algolia uses 'lng' standard
+                };
+            }
+
             return {
                 id: doc.id,
                 title: data.condominiumName || 'Untitled Property',
@@ -174,7 +157,9 @@ export async function fetchAgentPosts(userId) {
                 area: data.location || '',
                 gender: data.gender || 'Mix',
                 roomType: data.roomType || 'Middle',
-                condominiumName: data.condominiumName || ''
+                condominiumName: data.condominiumName || '',
+                // ★ ADDED: Return as _geoloc
+                _geoloc: _geoloc
             };
         });
         console.log(`📦 Found ${posts.length} listings`);
@@ -251,41 +236,62 @@ export async function updatePost(postId, updates) {
 export async function searchTenants(propertyFilter) {
     console.log("🔍 Starting Algolia Search with filters:", propertyFilter);
     
-    // 1. Build Filters
+    // --- Facet Filters (Rent & Gender) ---
     let filters = ['role:tenant'];
     
-    // Handle Budget
+    // 1. Filter by Rent (Budget)
     if (propertyFilter.rent && propertyFilter.rent > 0) {
         filters.push(`budget >= ${propertyFilter.rent}`);
     }
     
-    // Handle Gender (if passed)
+    // 2. Filter by Gender
     if (propertyFilter.gender && propertyFilter.gender !== 'Mix') {
         filters.push(`(gender:${propertyFilter.gender} OR gender:Mix)`);
     }
 
     const filterString = filters.join(' AND ');
 
-    // 2. Determine Query String
-    // Priority: User typed input > Selected Area > Empty
-    // Note: If you want to filter strictly by area, add it to filters instead: `location:${propertyFilter.area}`
-    // But for fuzzy search, we put it in the query.
-    let queryParts = [];
-    if (propertyFilter.query) queryParts.push(propertyFilter.query);
-    if (propertyFilter.area) queryParts.push(propertyFilter.area);
+    // --- Algolia Options ---
+    let algoliaOptions = {
+        filters: filterString,
+        hitsPerPage: 20
+    };
+
+    // --- Location Logic ---
+    let queryStr = "";
     
-    const queryStr = queryParts.join(' ');
-    
-    console.log(`🛰️ Algolia Request -> Query: "${queryStr}", Filters: "${filterString}"`);
+    // ★ Use _geoloc from Property Listing
+    if (propertyFilter._geoloc) {
+        const { lat, lng } = propertyFilter._geoloc;
+        // Also handle 'long' if your custom data uses it, but standard is 'lng'
+        const longitude = lng || propertyFilter._geoloc.long; 
+        
+        algoliaOptions.aroundLatLng = `${lat}, ${longitude}`;
+        algoliaOptions.aroundRadius = 20000; // 20km radius
+        console.log(`✅ Using Property Geolocation: ${lat}, ${longitude}`);
+    } 
+    // Fallback: Geocode text query
+    else if (propertyFilter.query && propertyFilter.query.trim().length > 0) {
+        console.log(`🗺️ Geocoding location: ${propertyFilter.query}`);
+        const coords = await getCoordinates(propertyFilter.query); // Existing helper
+        
+        if (coords) {
+            algoliaOptions.aroundLatLng = `${coords.lat}, ${coords.lng}`;
+            algoliaOptions.aroundRadius = 20000;
+            console.log("✅ Using Geo-Search (from text)");
+        } else {
+            console.log("⚠️ Geocoding failed, using text match");
+            queryStr = propertyFilter.query;
+        }
+    }
+
+    // --- Execute Search ---
+    console.log(`🛰️ Sending to Algolia...`, { query: queryStr, options: algoliaOptions });
 
     try {
-        const result = await tenantIndex.search(queryStr, {
-            filters: filterString,
-            hitsPerPage: 20
-        });
-
-        console.log(`📊 Algolia Result -> Found ${result.nbHits} hits`);
-
+        const result = await tenantIndex.search(queryStr, algoliaOptions);
+        
+        // Map results (same as before)
         return result.hits.map(hit => ({
             id: hit.objectID,
             name: hit.displayName || 'Unknown',
@@ -310,6 +316,21 @@ function calculateMatchScore(tenant, property) {
     if (tenant.roomType === property.roomType) score += 5;
     const finalScore = Math.min(score, 99);
     return finalScore;
+}
+
+async function getCoordinates(address) {
+    if (!address) return null;
+    const geocodeFunc = httpsCallable(functions, 'geocode');
+    try {
+        const result = await geocodeFunc({ address: address });
+        if (result.data.lat && result.data.lng) {
+            console.log(`📍 Geocoded "${address}" to:`, result.data);
+            return result.data; // { lat, lng }
+        }
+    } catch (error) {
+        console.error("Geocoding Cloud Function Error:", error);
+    }
+    return null;
 }
 
 export async function startChat(otherUserId, otherUserName, otherUserPhoto) {

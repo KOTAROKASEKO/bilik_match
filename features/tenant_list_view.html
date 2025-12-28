@@ -146,13 +146,15 @@
 
         <div class="flex-1 flex flex-col min-w-0">
             
-            <div class="bg-white rounded-full shadow-sm border border-gray-100 p-2 pl-6 pr-2 mb-6 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow">
+            <div class="bg-white rounded-full shadow-sm border border-gray-100 p-2 pl-6 pr-2 mb-6 flex items-center gap-4 hover:shadow-md transition-shadow focus-within:ring-2 focus-within:ring-primary/20">
                 <div class="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
-                    <i class="fas fa-magic text-primary text-sm"></i>
+                    <i class="fas fa-map-marker-alt text-primary text-sm"></i>
                 </div>
                 <div class="flex-1">
-                    <h4 class="text-sm font-bold text-gray-800">Search for matching tenants...</h4>
-                    <p class="text-xs text-gray-400">Try "Software engineer in KL"</p>
+                    <input type="text" id="location-search" 
+                           placeholder="Search location (e.g. KLCC, Mont Kiara)..." 
+                           class="w-full bg-transparent border-none outline-none text-sm font-bold text-gray-800 placeholder-gray-400"
+                           onkeydown="if(event.key === 'Enter') applyFilters()">
                 </div>
                 <button onclick="applyFilters()" class="w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors">
                     <i class="fas fa-search"></i>
@@ -284,7 +286,7 @@
             await loadProperties(user.uid);
         } else {
             authBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> <span>Sign In</span>`;
-            authBtn.onclick = () => window.location.href = 'signin/sign_in.html';
+            authBtn.onclick = () => window.location.href = 'login.html';
             loadDemoProperties();
         }
         applyFilters(); 
@@ -325,6 +327,7 @@
         document.getElementById('g-any').checked = true;
         document.getElementById('min-budget').value = '';
         document.getElementById('max-budget').value = '';
+        document.getElementById('location-search').value = ''; // Clear search input
         handlePropertyChange(); 
     };
 
@@ -353,10 +356,16 @@
         const gender = document.querySelector('input[name="gender"]:checked').value;
         const maxB = document.getElementById('max-budget').value;
         
+        // Text search input
+        const locationQuery = document.getElementById('location-search').value;
+
         const filter = {
-            query: "", 
+            query: locationQuery, 
             rent: maxB ? parseInt(maxB) : (property ? property.rent : 0), 
             gender: gender === 'any' ? (property ? property.gender : 'Mix') : gender,
+            
+            // ★ ADDED: Pass the _geoloc object from the selected property
+            _geoloc: property ? property._geoloc : null 
         };
 
         const grid = document.getElementById('tenant-grid');
@@ -480,12 +489,14 @@
     
 
     const firebaseConfig = {
-        // ... (Paste your config here just in case this page loads standalone) ...
-        apiKey: "AIzaSy...",
-        authDomain: "...",
-        projectId: "...",
-        // ★ Don't forget this!
-        measurementId: "G-XXXXXXXXXX" 
+        apiKey: "AIzaSyBCCxQ0AYTHy6A6DrfW7ylYxjGW6AZA1OQ",
+        authDomain: "whatsappclone-5ad8f.firebaseapp.com",
+        databaseURL: "https://whatsappclone-5ad8f-default-rtdb.firebaseio.com",
+        projectId: "whatsappclone-5ad8f",
+        storageBucket: "whatsappclone-5ad8f.firebasestorage.app",
+        messagingSenderId: "1049878222012",
+        appId: "1:1049878222012:web:54584a8098728e70acecb9",
+        measurementId: "G-EQ99QMVB2Y"
     };
 
     // 2. SAFE INITIALIZATION:
@@ -497,9 +508,5 @@
     initAnalytics(app);
     recordVisit();
 </script>
-</body>
-</html>
-</body>
-</html>
 </body>
 </html>
