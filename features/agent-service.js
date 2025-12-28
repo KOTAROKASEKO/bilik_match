@@ -318,6 +318,26 @@ function calculateMatchScore(tenant, property) {
     return finalScore;
 }
 
+// Add this to features/agent-service.js
+
+export async function fetchAgentProfile(userId) {
+    console.log(`📡 Fetching profile for UID: ${userId}`);
+    try {
+        const docRef = doc(db, "users_prof", userId);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+            return docSnap.data();
+        } else {
+            console.warn("⚠️ No profile found for this user.");
+            return null;
+        }
+    } catch (error) {
+        console.error("❌ Error fetching profile:", error);
+        return null;
+    }
+}
+
 async function getCoordinates(address) {
     if (!address) return null;
     const geocodeFunc = httpsCallable(functions, 'geocode');
