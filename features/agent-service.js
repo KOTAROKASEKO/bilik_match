@@ -390,8 +390,8 @@ export async function startChat(otherUserId, otherUserName, otherUserPhoto) {
             });
         }
         
-        // Redirect
-        window.location.href = 'chat/chat.html';
+        // Redirect with ID parameter
+        window.location.href = `chat/chat.html?id=${threadId}`;
     } catch (e) {
         console.error("Error starting chat:", e);
         alert("Failed to start chat. See console.");

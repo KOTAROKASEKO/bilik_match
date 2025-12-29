@@ -167,7 +167,7 @@
             );
 
             onSnapshot(q, async (snapshot) => {
-                // ★ 修正2: 現在の処理IDを発行し、古い処理の結果を無視するようにする
+                // Increment snapshot ID to handle race conditions from async operations
                 const currentSnapshotId = ++latestSnapshotId;
 
                 if (snapshot.empty) {
@@ -177,13 +177,13 @@
                     return;
                 }
 
-                // ★ 修正3: forEachでの直接描画をやめ、データを配列にマップする
+                // Map docs to a promise array to fetch user profiles asynchronously
                 const threadPromises = snapshot.docs.map(async (docSnapshot) => {
                     const data = docSnapshot.data();
                     const threadId = docSnapshot.id;
                     const otherUserId = data.whoSent === currentUser.uid ? data.whoReceived : data.whoSent;
                     
-                    // 非同期でプロフィール取得
+                    // Fetch profile
                     const userProfile = await fetchUserProfile(otherUserId);
                     
                     return {
@@ -194,13 +194,13 @@
                     };
                 });
 
-                // ★ 修正4: 全てのデータ取得が終わるまで待つ (Promise.all)
+                // Wait for all profiles to load
                 const threadsData = await Promise.all(threadPromises);
 
-                // ★ 修正5: 待っている間に新しいスナップショットが来ていたら、この古い結果は捨てる
+                // If a newer snapshot has started processing, discard this old result
                 if (currentSnapshotId !== latestSnapshotId) return;
 
-                // ★ 修正6: 一括描画 (これで順番通り、かつ重複なしになる)
+                // Render the list
                 threadsContainer.innerHTML = '';
                 
                 threadsData.forEach(({ threadId, data, userProfile, otherUserId }) => {
@@ -227,9 +227,20 @@
                     `;
                     threadsContainer.appendChild(div);
                 });
+
+                // ★ NEW LOGIC: Check URL for 'id' parameter and auto-open the chat
+                // We only do this if no chat is currently selected (to prevent switching if the user is already clicking around)
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetId = urlParams.get('id');
+
+                if (targetId && !currentThreadId) {
+                    const targetThread = threadsData.find(t => t.threadId === targetId);
+                    if (targetThread) {
+                        openChat(targetThread.threadId, targetThread.otherUserId, targetThread.userProfile);
+                    }
+                }
             });
         }
-
         async function fetchUserProfile(uid) {
             try {
                 const snap = await getDoc(doc(db, "users_prof", uid));
